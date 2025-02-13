@@ -1,20 +1,20 @@
 import firebase_admin
 from firebase_admin import credentials, db
 import streamlit as st
-import json
 
 class DatabaseManager:
     def __init__(self):
-        # Cargar las credenciales desde Streamlit Secrets
-        firebase_secrets = st.secrets["firebase_credenciales"]
-
+        firebase_secrets = dict(st.secrets["firebase_credenciales"])
         
-        if not firebase_admin._apps:  # Verifica si Firebase ya está inicializado
-            cred = credentials.Certificate(dict(firebase_secrets))
-
-            firebase_admin.initialize_app(cred, {"databaseURL": "https://mapa-doctrinario-default-rtdb.firebaseio.com/"})
+        if not firebase_admin._apps:
+            cred = credentials.Certificate(firebase_secrets)
+            firebase_admin.initialize_app(cred, {
+                "databaseURL": "https://mapa-doctrinario-default-rtdb.firebaseio.com/",
+                "storageBucket": f"{firebase_secrets['project_id']}.appspot.com"
+            })
         
         self.ref = db.reference("manuales")
+
 
     def add_manual(self, manual_id, categoria_x, subcategoria_x, categoria_y, nombre, anio, estado, subproceso_estado, id_categoria=0):
         """
