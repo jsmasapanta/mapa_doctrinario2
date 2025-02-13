@@ -1,13 +1,18 @@
 import firebase_admin
 from firebase_admin import credentials, db
+import streamlit as st
+import json
 
 class DatabaseManager:
-    def __init__(self, cred_file, db_url):
+    def __init__(self):
+        # Cargar las credenciales desde Streamlit Secrets
+        firebase_secrets = json.loads(st.secrets["firebase_credenciales"])
+        
         if not firebase_admin._apps:  # Verifica si Firebase ya está inicializado
-            cred = credentials.Certificate(cred_file)
-            firebase_admin.initialize_app(cred, {"databaseURL": db_url})
+            cred = credentials.Certificate(firebase_secrets)
+            firebase_admin.initialize_app(cred, {"databaseURL": "https://mapa-doctrinario-default-rtdb.firebaseio.com/"})
+        
         self.ref = db.reference("manuales")
-
 
     def add_manual(self, manual_id, categoria_x, subcategoria_x, categoria_y, nombre, anio, estado, subproceso_estado, id_categoria=0):
         """
@@ -35,31 +40,23 @@ class DatabaseManager:
         """
         datos = self.ref.get()
         
-        # Si los datos están vacíos, devuelve una lista vacía
-        if not datos:
+        if not datos:  # Si los datos están vacíos, devuelve una lista vacía
             return []
 
-        # Si los datos son un diccionario, procesarlos normalmente
-        if isinstance(datos, dict):
+        if isinstance(datos, dict):  # Si los datos son un diccionario, procesarlos normalmente
             return [{"id": key, **value} for key, value in datos.items()]
 
-        # Si los datos son una lista, procesarlos como lista
-        if isinstance(datos, list):
+        if isinstance(datos, list):  # Si los datos son una lista, procesarlos como lista
             return [{"id": idx, **value} for idx, value in enumerate(datos) if value]  # Filtra valores vacíos
 
-        # Si los datos no son ni un diccionario ni una lista, lanza una excepción
-        raise TypeError("Formato inesperado de los datos en Firebase.")
-
+        raise TypeError("Formato inesperado de los datos en Firebase.")  # Si los datos tienen un formato desconocido
 
     def fetch_manual_by_id(self, manual_id):
         """
         Obtiene un manual específico por su ID.
         """
         manual = self.ref.child(str(manual_id)).get()
-        if manual:
-            return manual  # Devuelve el manual como un diccionario
-        return None
-
+        return manual if manual else None  # Devuelve el manual como un diccionario o None si no existe
 
     def update_manual(self, manual_id, categoria_x, subcategoria_x, categoria_y, nombre, anio, estado, subproceso_estado):
         """
@@ -80,15 +77,8 @@ class DatabaseManager:
         """
         Elimina un manual por su ID.
         """
-        # Convierte el manual_id a string para buscarlo como clave en Firebase
-        manual_id_str = str(manual_id)
-        
-        # Busca el manual en la base de datos
-        manual_ref = self.ref.child(manual_id_str)
+        manual_ref = self.ref.child(str(manual_id))
         if manual_ref.get():
-            # Si existe, lo elimina
-            manual_ref.delete()
+            manual_ref.delete()  # Si existe, lo elimina
             return True
         return False
-
-
