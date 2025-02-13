@@ -10,7 +10,8 @@ class DatabaseManager:
 
         
         if not firebase_admin._apps:  # Verifica si Firebase ya está inicializado
-            cred = credentials.Certificate(firebase_secrets)
+            cred = credentials.Certificate(dict(firebase_secrets))
+
             firebase_admin.initialize_app(cred, {"databaseURL": "https://mapa-doctrinario-default-rtdb.firebaseio.com/"})
         
         self.ref = db.reference("manuales")
