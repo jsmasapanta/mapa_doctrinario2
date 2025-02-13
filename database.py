@@ -6,7 +6,8 @@ import json
 class DatabaseManager:
     def __init__(self):
         # Cargar las credenciales desde Streamlit Secrets
-        firebase_secrets = json.loads(st.secrets["firebase_credenciales"])
+        firebase_secrets = st.secrets["firebase_credenciales"]
+
         
         if not firebase_admin._apps:  # Verifica si Firebase ya está inicializado
             cred = credentials.Certificate(firebase_secrets)
